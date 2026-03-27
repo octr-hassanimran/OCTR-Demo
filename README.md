@@ -73,7 +73,7 @@ See [docs/TECH-STACK.md](docs/TECH-STACK.md) for full details and install comman
 ├── public/                        # Static assets
 ├── package.json
 ├── tailwind.config.ts
-├── next.config.ts
+├── next.config.mjs
 └── tsconfig.json
 ```
 
