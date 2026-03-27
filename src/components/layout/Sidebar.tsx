@@ -63,14 +63,19 @@ export function Sidebar() {
               key={item.db}
               href={item.href}
               className={cn(
-                "flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-all duration-200",
+                "group relative flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] transition-all duration-200 border border-transparent overflow-hidden",
                 isActive
-                  ? "bg-[rgba(82,183,136,0.12)] text-[var(--primary-bright)] font-medium"
-                  : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)]"
+                  ? "text-[var(--primary-bright)] font-semibold bg-[rgba(82,183,136,0.08)] border-[rgba(82,183,136,0.35)] shadow-[0_0_0_1px_rgba(82,183,136,0.22),0_12px_28px_rgba(64,145,108,0.16)] before:absolute before:inset-[-20%] before:bg-[radial-gradient(circle_at_20%_20%,rgba(82,183,136,0.22),transparent_55%)] before:opacity-80 before:pointer-events-none"
+                  : "text-[var(--text-muted)] hover:text-[var(--text)] hover:bg-[var(--surface-hover)] hover:border-[rgba(82,183,136,0.25)] hover:shadow-[0_0_0_1px_rgba(82,183,136,0.18),0_10px_22px_rgba(64,145,108,0.12)]"
               )}
             >
-              <Icon className="w-[16px] h-[16px] flex-shrink-0" />
-              <span className="truncate">{item.label}</span>
+              <Icon
+                className={cn(
+                  "w-[16px] h-[16px] flex-shrink-0 transition-transform duration-200",
+                  isActive ? "scale-105 drop-shadow-[0_0_6px_rgba(82,183,136,0.55)]" : "group-hover:translate-x-[1px]"
+                )}
+              />
+              <span className="truncate relative z-[1]">{item.label}</span>
             </Link>
           );
         })}
