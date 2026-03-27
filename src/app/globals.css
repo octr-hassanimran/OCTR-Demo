@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Tailwind v4 Theme Tokens ──────────────────────────────── */
+
+@theme {
+  --color-background: #0a0f0d;
+  --color-surface: #111b16;
+  --color-surface-hover: #1a2b22;
+  --color-primary: #2d6a4f;
+  --color-primary-strong: #1b4332;
+  --color-primary-bright: #52b788;
+  --color-primary-soft: #40916c;
+  --color-foreground: #e8f5e9;
+  --color-foreground-muted: #a7c4b5;
+  --color-foreground-faint: #6f8578;
+  --color-danger: #e57373;
+  --color-warning: #f6c344;
+  --color-info: #6cb2ff;
+
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 12px;
+
+  --shadow-soft: 0 10px 40px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 12px rgba(64, 145, 108, 0.6);
+  --shadow-glow-border: 0 0 0 1px rgba(82, 183, 136, 0.4), 0 10px 50px
+      rgba(64, 145, 108, 0.25);
+}
+
+/* ── CSS custom properties for JS/chart components ──────── */
+
+:root {
+  --bg: #0a0f0d;
+  --surface: #111b16;
+  --surface-hover: #1a2b22;
+  --border: rgba(255, 255, 255, 0.06);
+  --border-strong: rgba(255, 255, 255, 0.14);
+  --primary: #2d6a4f;
+  --primary-strong: #1b4332;
+  --primary-bright: #52b788;
+  --primary-soft: #40916c;
+  --text: #e8f5e9;
+  --text-muted: #a7c4b5;
+  --text-faint: #6f8578;
+  --danger: #e57373;
+  --warning: #f6c344;
+  --info: #6cb2ff;
+  --gradient-hero: linear-gradient(
+    135deg,
+    rgba(13, 31, 18, 0.92),
+    rgba(45, 106, 79, 0.85)
+  );
+  --gradient-chart: linear-gradient(
+    180deg,
+    rgba(82, 183, 136, 0.4) 0%,
+    rgba(82, 183, 136, 0) 100%
+  );
+}
+
+/* ── Base styles ────────────────────────────────────────── */
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.recharts-tooltip-wrapper {
+  outline: none !important;
+}

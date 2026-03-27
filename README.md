@@ -88,13 +88,16 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deployment
 
-This project deploys to **Vercel**. Push to `main` to trigger auto-deploy.
+The demo is meant to run on **[Vercel](https://vercel.com)** so you get a shareable `https://….vercel.app` URL for your cofounder (no extra auth required for a trusted link).
+
+**Recommended:** connect your Git repo to Vercel — every push to `main` deploys production; other branches get preview URLs for safe iteration.
 
 ```bash
-npx vercel --prod
+npm run deploy:preview   # npx vercel — preview URL
+npm run deploy           # npx vercel --prod — production (requires Vercel CLI linked)
 ```
 
-The live URL will be shared with your co-founder for investor demos.
+Full step-by-step (GitHub import, production branch, troubleshooting): **[docs/DEPLOY.md](docs/DEPLOY.md)**.
 
 ## Commit Conventions
 
