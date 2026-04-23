@@ -1281,7 +1281,7 @@ export default function DesignLabPage() {
               <div className="p-4 space-y-3 text-[13px] text-foreground-muted max-h-52 overflow-auto">
                 <div className="flex items-center gap-2 text-foreground">
                   <Gauge className="w-4 h-4 text-[var(--primary-bright)]" />
-                  Target COP > 6.1 (current 6.4)
+                  Target COP {'>'} 6.1 (current 6.4)
                 </div>
                 <div className="flex items-center gap-2">
                   <Droplets className="w-4 h-4 text-[var(--info)]" />

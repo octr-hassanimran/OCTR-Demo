@@ -93,15 +93,27 @@ npx plugins add vercel/vercel-plugin
 
 Or in Cursor: **`/add-plugin vercel`**. See [Vercel docs: Agent resources](https://vercel.com/docs/agent-resources/vercel-plugin).
 
+## Repository Map
+
+### Folder guide (what belongs where)
+
+- `apps/web/` — production Next.js app (single source of truth)
+- `docs/` — specifications, references, design system, and handoff notes
+- `exports/` — shareable standalone deliverables (HTML bundles, zips)
+- `tooling/` — local dev tooling files (brew, node version)
+
+Dashboard-specific implementation + handoff mapping lives in:
+- `docs/dashboards/README.md`
+
 ## Project Structure
 
 ```
-├── docs/                          # All documentation and specs
+├── docs/                          # Documentation, specs, and references
 │   ├── DASHBOARD-INDEX.md         # Dashboard map and build order
 │   ├── TECH-STACK.md              # Libraries, versions, rationale
 │   ├── WORKFLOW.md                # Cursor/Claude workflow notes
 │   ├── SYNTHETIC-DATA.md          # Synthetic data schema and storyline
-│   ├── dashboards/                # One folder per dashboard
+│   ├── dashboards/                # Dashboard registry + per-dashboard specs
 │   │   ├── db1-executive-summary/
 │   │   │   └── SPEC.md
 │   │   ├── db2-live-operations/
@@ -122,27 +134,26 @@ Or in Cursor: **`/add-plugin vercel`**. See [Vercel docs: Agent resources](https
 │   │   └── demo-page-outline.md
 │   ├── references/                # Competitor screenshots, inspiration links
 │   │   └── REFERENCES.md
-│   └── planning/                  # Planning chat archive
-│       ├── PLANNING-CHAT.md
-│       └── PLANNING-CHAT-FULL-EXPORT.md
-├── src/                           # Next.js application source
-│   ├── app/                       # App Router pages
-│   ├── components/                # Shared UI components
-│   │   ├── ui/                    # shadcn/ui components
-│   │   ├── charts/                # Chart wrapper components
-│   │   ├── layout/                # Sidebar, header, drawer
-│   │   └── three/                 # 3D building components
-│   ├── data/                      # Synthetic data seed files
-│   └── lib/                       # Utilities, types, adapters
-├── public/                        # Static assets
-├── Brewfile                       # Homebrew tooling manifest (node, gh)
+│   └── planning/                  # Planning notes
+│       └── PLANNING-CHAT.md
+├── exports/                       # Standalone handoff artifacts
+│   └── energy-metering/
+│       ├── standalone/
+│       └── metering-standalone.zip
+├── apps/
+│   └── web/                       # Next.js application
+│       ├── src/                   # App Router source (routes/components/data/lib)
+│       ├── public/                # Static assets
+│       ├── next.config.mjs
+│       ├── tailwind.config.ts
+│       └── tsconfig.json
+├── tooling/                       # Local tooling (brew + node version)
+│   ├── Brewfile
+│   └── .nvmrc
 ├── .env.example                   # Template for `.env.local` (optional keys)
-├── .nvmrc                         # Node version for nvm (optional)
 ├── package.json
 ├── package-lock.json
-├── tailwind.config.ts
-├── next.config.mjs
-└── tsconfig.json
+└── (workspace root)
 ```
 
 ## Getting Started (quick)
@@ -166,6 +177,17 @@ npm run deploy           # npx vercel --prod — production (requires Vercel CLI
 ```
 
 Full step-by-step (GitHub import, production branch, troubleshooting): **[docs/DEPLOY.md](docs/DEPLOY.md)**.
+
+## GitHub Pre-publish Checklist
+
+Before pushing for team review:
+
+- [ ] `npm run build` succeeds locally.
+- [ ] Root folder is clean: no throwaway files, screenshots, temp notes.
+- [ ] Standalone/demo deliverables are under `exports/` (not repo root).
+- [ ] `docs/dashboards/README.md` reflects current route status (`active`, `standalone-only`, `planned`).
+- [ ] New dashboard work includes `SPEC.md` + `MINIMAL-SUBSET.md`.
+- [ ] Route naming stays consistent (see dashboard naming policy).
 
 ## Commit Conventions
 

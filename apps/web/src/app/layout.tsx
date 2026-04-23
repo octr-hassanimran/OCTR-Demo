@@ -21,9 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={jakarta.variable}>
       <body className="font-sans">
-        <div className="flex h-screen overflow-hidden">
+        <div className="flex h-screen min-h-0 overflow-hidden">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          {/* min-h-0 + min-w-0: flex default min-size is content; without this, main cannot shrink and scroll breaks */}
+          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">{children}</main>
         </div>
       </body>
     </html>

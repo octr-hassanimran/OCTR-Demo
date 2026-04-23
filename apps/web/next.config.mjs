@@ -6,6 +6,15 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async redirects() {
+    return [
+      {
+        source: "/optimization-algos",
+        destination: "/optimisation-algos",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;

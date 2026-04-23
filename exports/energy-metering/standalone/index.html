@@ -1,0 +1,691 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Energy Metering (Standalone)</title>
+    <style>
+      :root {
+        --bg: #0b0f14;
+        --surface: rgba(24, 28, 35, 0.9);
+        --surface2: rgba(27, 31, 38, 0.75);
+        --border: rgba(255, 255, 255, 0.08);
+        --text: #edf1f4;
+        --muted: #aeb6c2;
+        --faint: #7f8b99;
+        --primary: #65d4a1;
+        --elec: #95d5b2;
+        --gas: #f6c344;
+        --info: #6cb2ff;
+        --danger: #e57373;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+      }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      }
+      .chrome {
+        position: relative;
+        min-height: 100%;
+        overflow: hidden;
+      }
+      .chrome::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: #070a0f;
+      }
+      .chrome::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.04), transparent 32%),
+          radial-gradient(circle at 80% 0%, rgba(101, 212, 161, 0.12), transparent 36%),
+          radial-gradient(circle at 40% 80%, rgba(108, 178, 255, 0.08), transparent 34%);
+        opacity: 0.7;
+        pointer-events: none;
+      }
+      .gridOverlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        background-size: 34px 34px;
+        opacity: 0.18;
+      }
+      .wrap {
+        position: relative;
+        max-width: 1700px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+
+      .hero {
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 18px;
+        background: radial-gradient(circle at 20% 15%, rgba(101, 212, 161, 0.12), transparent 32%),
+          radial-gradient(circle at 80% 5%, rgba(108, 178, 255, 0.18), transparent 38%),
+          linear-gradient(135deg, #0b0f14 0%, #0d1118 60%, #0b0f14 100%);
+      }
+      .titleRow {
+        display: flex;
+        align-items: baseline;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .eyebrow {
+        font-size: 11px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--faint);
+        font-weight: 800;
+      }
+      .h1 {
+        font-size: 22px;
+        font-weight: 950;
+      }
+      .pill {
+        font-size: 12px;
+        color: var(--primary);
+        font-weight: 800;
+        background: rgba(82, 183, 136, 0.12);
+        border: 1px solid rgba(82, 183, 136, 0.25);
+        padding: 3px 10px;
+        border-radius: 999px;
+      }
+      .note {
+        margin-top: 10px;
+        font-size: 11px;
+        color: var(--faint);
+      }
+
+      .row {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        margin: 16px 0 12px;
+      }
+      .chipgroup {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        padding: 6px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--surface2);
+      }
+      button.chip {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        padding: 8px 10px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: 700;
+        font-size: 12px;
+      }
+      button.chip:hover {
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      button.chip.active {
+        background: rgba(82, 183, 136, 0.18);
+        color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(82, 183, 136, 0.25) inset;
+      }
+      button.tab {
+        padding: 9px 12px;
+        font-size: 13px;
+        border-radius: 10px;
+        font-weight: 800;
+      }
+      button.tab.active.combined {
+        background: rgba(82, 183, 136, 0.2);
+        color: var(--primary);
+        box-shadow: 0 0 0 1px rgba(82, 183, 136, 0.28) inset;
+      }
+      button.tab.active.electricity {
+        background: rgba(82, 183, 136, 0.14);
+        color: var(--elec);
+        box-shadow: 0 0 0 1px rgba(82, 183, 136, 0.22) inset;
+      }
+      button.tab.active.gas {
+        background: rgba(246, 195, 68, 0.14);
+        color: var(--gas);
+        box-shadow: 0 0 0 1px rgba(246, 195, 68, 0.22) inset;
+      }
+
+      .grid4 {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 10px;
+      }
+      @media (max-width: 1200px) {
+        .grid4 {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+      @media (max-width: 640px) {
+        .grid4 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        position: relative;
+        overflow: hidden;
+        backdrop-filter: blur(8px);
+      }
+      .klabel {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--faint);
+        font-weight: 800;
+      }
+      .kval {
+        margin-top: 8px;
+        font-size: 20px;
+        font-weight: 950;
+        font-variant-numeric: tabular-nums;
+      }
+      .khint {
+        margin-top: 8px;
+        font-size: 11px;
+        color: var(--muted);
+        line-height: 1.25;
+      }
+      .sectionTitle {
+        font-size: 16px;
+        font-weight: 950;
+      }
+      .sectionSub {
+        margin-top: 6px;
+        font-size: 12px;
+        color: var(--faint);
+        line-height: 1.35;
+        max-width: 70ch;
+      }
+      .chart {
+        width: 100%;
+        height: 380px;
+        margin-top: 10px;
+      }
+      .chartSm {
+        width: 100%;
+        height: 300px;
+        margin-top: 8px;
+      }
+      .two {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 12px;
+      }
+      @media (max-width: 1100px) {
+        .two {
+          grid-template-columns: 1fr;
+        }
+      }
+      .hidden {
+        display: none;
+      }
+      .smallFaint {
+        font-size: 11px;
+        color: var(--faint);
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="chrome">
+      <div class="gridOverlay"></div>
+      <div class="wrap">
+        <div class="hero">
+          <div class="titleRow">
+            <div class="eyebrow">Client Metering</div>
+            <div class="h1">Energy Metering</div>
+            <div class="pill">G-Valley</div>
+          </div>
+          <div class="note">Actuals through Apr 2026 · Projection from May 2026 (hatched / dashed months in charts)</div>
+        </div>
+
+        <div class="row">
+          <div class="chipgroup" id="tabs" role="tablist" aria-label="Fuel view">
+            <button class="chip tab active combined" data-view="combined" role="tab" aria-selected="true">Combined</button>
+            <button class="chip tab electricity" data-view="electricity" role="tab" aria-selected="false">Electricity</button>
+            <button class="chip tab gas" data-view="gas" role="tab" aria-selected="false">Gas</button>
+          </div>
+
+          <div class="chipgroup" id="ranges" aria-label="Range">
+            <button class="chip active" data-range="last3m">Last 3M</button>
+            <button class="chip" data-range="last6m">Last 6M</button>
+            <button class="chip" data-range="y2025">2025</button>
+            <button class="chip" data-range="y2026">2026</button>
+            <button class="chip" data-range="all">All</button>
+          </div>
+        </div>
+
+        <div class="grid4" id="kpis"></div>
+        <div class="smallFaint">Tip: replace `data.example.js` with your real data file (same object keys).</div>
+
+        <div id="view-combined">
+          <div class="card" style="margin-top: 14px">
+            <div class="sectionTitle">Total energy cost (elec + gas)</div>
+            <div class="sectionSub">Baseline vs OCTR bill (M₩). Grey = baseline, blue = OCTR bill, green = avoided cost.</div>
+            <div id="c_cost" class="chart"></div>
+          </div>
+          <div class="two">
+            <div class="card">
+              <div class="sectionTitle" style="font-size: 14px">Savings rate</div>
+              <div class="sectionSub">Share of baseline spend avoided (combined).</div>
+              <div id="c_rate" class="chartSm"></div>
+            </div>
+            <div class="card">
+              <div class="sectionTitle" style="font-size: 14px">Cumulative savings</div>
+              <div class="sectionSub">Running total (full series) — independent of range.</div>
+              <div id="c_cum" class="chartSm"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-electricity" class="hidden">
+          <div class="card" style="margin-top: 14px">
+            <div class="sectionTitle">Electricity · consumption (kWh)</div>
+            <div class="sectionSub">Baseline bars vs OCTR delivery. Solid = actual; dashed = projected.</div>
+            <div id="e_cons" class="chart"></div>
+          </div>
+          <div class="two">
+            <div class="card">
+              <div class="sectionTitle" style="font-size: 14px">Bill stack (M₩)</div>
+              <div class="sectionSub">Grey = baseline bill. Green = cost avoided by OCTR.</div>
+              <div id="e_stack" class="chartSm"></div>
+            </div>
+            <div class="card">
+              <div class="sectionTitle" style="font-size: 14px">Savings rate</div>
+              <div class="sectionSub">Electricity cost avoided ÷ baseline bill, by month.</div>
+              <div id="e_rate" class="chartSm"></div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-gas" class="hidden">
+          <div class="card" style="margin-top: 14px">
+            <div class="sectionTitle">City gas · volume (m³)</div>
+            <div class="sectionSub">Baseline bars vs OCTR delivery. Solid = actual; dashed = projected.</div>
+            <div id="g_vol" class="chart"></div>
+          </div>
+          <div class="two">
+            <div class="card">
+              <div class="sectionTitle" style="font-size: 14px">Bill stack (M₩)</div>
+              <div class="sectionSub">Grey = baseline bill. Amber = cost avoided by OCTR.</div>
+              <div id="g_stack" class="chartSm"></div>
+            </div>
+            <div class="card">
+              <div class="sectionTitle" style="font-size: 14px">Savings rate</div>
+              <div class="sectionSub">Gas cost avoided ÷ baseline bill, by month.</div>
+              <div id="g_rate" class="chartSm"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./echarts.min.js"></script>
+    <script src="./data.example.js"></script>
+    <script>
+      (function () {
+        const DATA = (window.METERING_DATA || { combined: [], electricity: [], gas: [] });
+
+        function clamp(n, a, b) {
+          return Math.max(a, Math.min(b, n));
+        }
+        function monthLabel(m) {
+          // "2026-05" -> "26-05"
+          if (!m || m.length < 7) return m;
+          return m.slice(2, 4) + "-" + m.slice(5, 7);
+        }
+        function fmtMwon(krw, digits) {
+          const d = digits == null ? 1 : digits;
+          return "M₩" + (krw / 1e6).toFixed(d);
+        }
+        function sum(rows, f) {
+          let s = 0;
+          for (const r of rows) s += f(r) || 0;
+          return s;
+        }
+
+        function applyRange(rows, range) {
+          if (!rows || rows.length === 0) return [];
+          if (range === "all") return rows.slice();
+          if (range === "y2025") return rows.filter((r) => String(r.month || "").startsWith("2025"));
+          if (range === "y2026") return rows.filter((r) => String(r.month || "").startsWith("2026"));
+          const n = range === "last3m" ? 3 : 6;
+          return rows.slice(Math.max(0, rows.length - n));
+        }
+
+        function kpiCards(view, combined, elec, gas) {
+          if (view === "electricity") {
+            const actual = elec.filter((r) => r.status === "ACTUAL");
+            const ytdSavedKwh = sum(actual, (r) => r.saved_kwh);
+            const ytdSavedKrw = sum(actual, (r) => r.cost_saved_krw);
+            const avgRate = actual.length ? sum(actual, (r) => r.savings_rate) / actual.length : 0;
+            return [
+              { label: "2026 YTD · ₩ avoided", value: fmtMwon(ytdSavedKrw, 1), hint: "Actual months in range", tone: "elec" },
+              { label: "2026 YTD · kWh saved", value: (ytdSavedKwh / 1000).toFixed(0) + "k kWh", hint: "Baseline − OCTR", tone: "elec" },
+              { label: "Avg savings rate", value: (avgRate * 100).toFixed(1) + "%", hint: "Electricity only", tone: "primary" },
+              { label: "Projection start", value: "May 2026", hint: "Dashed/hatched after cutover", tone: "neutral" },
+            ];
+          }
+          if (view === "gas") {
+            const actual = gas.filter((r) => r.status === "ACTUAL");
+            const ytdSavedM3 = sum(actual, (r) => r.saved_m3);
+            const ytdSavedKrw = sum(actual, (r) => r.cost_saved_krw);
+            const avgRate = actual.length ? sum(actual, (r) => r.savings_rate) / actual.length : 0;
+            return [
+              { label: "2026 YTD · ₩ avoided", value: fmtMwon(ytdSavedKrw, 1), hint: "Actual months in range", tone: "gas" },
+              { label: "2026 YTD · m³ saved", value: ytdSavedM3.toLocaleString("en-KR") + " m³", hint: "Baseline − OCTR", tone: "gas" },
+              { label: "Avg savings rate", value: (avgRate * 100).toFixed(1) + "%", hint: "Gas only", tone: "primary" },
+              { label: "Projection start", value: "May 2026", hint: "Dashed/hatched after cutover", tone: "neutral" },
+            ];
+          }
+          const actual = combined.filter((r) => r.status === "ACTUAL");
+          const projected = combined.filter((r) => r.status !== "ACTUAL");
+          const ytdSavedKrw = sum(actual, (r) => r.total_saved_krw);
+          const projSavedKrw = sum(projected, (r) => r.total_saved_krw);
+          const avgRate = combined.length ? sum(combined, (r) => r.savings_rate) / combined.length : 0;
+          return [
+            { label: "2026 YTD · Combined", value: fmtMwon(ytdSavedKrw, 1), hint: "Actual months in range", tone: "primary" },
+            { label: "Forecast remainder", value: fmtMwon(projSavedKrw, 1), hint: "Projected months in range", tone: "neutral" },
+            { label: "Avg savings rate", value: (avgRate * 100).toFixed(1) + "%", hint: "Combined", tone: "primary" },
+            { label: "Projection start", value: "May 2026", hint: "Dashed/hatched after cutover", tone: "neutral" },
+          ];
+        }
+
+        function renderKpis(items) {
+          const el = document.getElementById("kpis");
+          const toneColor = (tone) => (tone === "gas" ? "var(--gas)" : tone === "elec" ? "var(--elec)" : tone === "neutral" ? "var(--muted)" : "var(--primary)");
+          el.innerHTML = items
+            .map(
+              (k) => `
+                <div class="card">
+                  <div class="klabel">${k.label}</div>
+                  <div class="kval" style="color:${toneColor(k.tone)}">${k.value}</div>
+                  <div class="khint">${k.hint}</div>
+                </div>
+              `,
+            )
+            .join("");
+        }
+
+        function axisCommon(months) {
+          return {
+            xAxis: {
+              type: "category",
+              data: months.map(monthLabel),
+              axisLabel: { color: "#A7C4B5", rotate: 35, fontSize: 10 },
+              axisTick: { show: false },
+              axisLine: { lineStyle: { color: "rgba(255,255,255,0.12)" } },
+            },
+            yAxis: {
+              type: "value",
+              axisLabel: { color: "#A7C4B5", fontSize: 10 },
+              splitLine: { lineStyle: { color: "rgba(255,255,255,0.05)" } },
+            },
+            grid: { left: 52, right: 16, top: 46, bottom: 72 },
+            tooltip: {
+              trigger: "axis",
+              backgroundColor: "rgba(17,27,22,0.95)",
+              borderColor: "rgba(255,255,255,0.08)",
+              textStyle: { color: "#E8F5E9" },
+            },
+          };
+        }
+
+        function optionCombinedCost(rows) {
+          const months = rows.map((r) => r.month);
+          const baselineM = rows.map((r) => (r.total_cost_krw + r.total_saved_krw) / 1e6);
+          const octrM = rows.map((r) => r.total_cost_krw / 1e6);
+          const avoidedM = rows.map((r) => r.total_saved_krw / 1e6);
+          return {
+            backgroundColor: "transparent",
+            ...axisCommon(months),
+            legend: { textStyle: { color: "#A7C4B5", fontSize: 11 }, top: 8 },
+            yAxis: { ...axisCommon(months).yAxis, name: "M₩", nameTextStyle: { color: "#6F8578", fontSize: 10 } },
+            series: [
+              { name: "Baseline bill (M₩)", type: "bar", data: baselineM, itemStyle: { color: "rgba(255,255,255,0.18)" } },
+              { name: "OCTR bill (M₩)", type: "bar", data: octrM, itemStyle: { color: "rgba(108,178,255,0.72)" } },
+              { name: "Avoided (M₩)", type: "line", data: avoidedM, smooth: 0.2, lineStyle: { width: 2, color: "rgba(82,183,136,0.9)" }, areaStyle: { color: "rgba(82,183,136,0.06)" } },
+            ],
+          };
+        }
+
+        function optionRate(rows, accent) {
+          const months = rows.map((r) => r.month);
+          const pct = rows.map((r) => +(r.savings_rate * 100).toFixed(2));
+          const actual = rows.map((r, i) => (r.status === "ACTUAL" ? pct[i] : null));
+          const projected = rows.map((r, i) => (r.status !== "ACTUAL" ? pct[i] : null));
+          const color = accent === "gas" ? "#f6c344" : accent === "elec" ? "#95d5b2" : "#65d4a1";
+          const pMin = Math.min.apply(null, pct);
+          const pMax = Math.max.apply(null, pct);
+          const pad = Math.max(2, (pMax - pMin) * 0.15);
+          return {
+            backgroundColor: "transparent",
+            ...axisCommon(months),
+            legend: { textStyle: { color: "#A7C4B5", fontSize: 11 }, top: 8 },
+            yAxis: {
+              type: "value",
+              name: "%",
+              min: clamp(pMin - pad, 0, 100),
+              max: clamp(pMax + pad, 0, 100),
+              nameTextStyle: { color: "#6F8578", fontSize: 10 },
+              axisLabel: { color: "#A7C4B5", fontSize: 10, formatter: (v) => v + "%" },
+              splitLine: { lineStyle: { color: "rgba(255,255,255,0.05)" } },
+            },
+            series: [
+              {
+                name: "Rate (actual)",
+                type: "line",
+                data: actual,
+                smooth: 0.2,
+                symbol: "circle",
+                symbolSize: 5,
+                lineStyle: { width: 2, color: color },
+                itemStyle: { color: color },
+                areaStyle: { color: accent === "gas" ? "rgba(246,195,68,0.10)" : "rgba(82,183,136,0.08)" },
+              },
+              {
+                name: "Rate (projected)",
+                type: "line",
+                data: projected,
+                smooth: 0.2,
+                symbol: "circle",
+                symbolSize: 4,
+                lineStyle: { width: 2, color: color, type: "dashed" },
+                itemStyle: { color: color },
+              },
+            ],
+          };
+        }
+
+        function optionElecConsumption(rows) {
+          const months = rows.map((r) => r.month);
+          const baseline = rows.map((r) => r.baseline_kwh);
+          const octrActual = rows.map((r) => (r.status === "ACTUAL" ? r.octr_kwh : null));
+          const octrProjected = rows.map((r) => (r.status !== "ACTUAL" ? r.octr_kwh : null));
+          return {
+            backgroundColor: "transparent",
+            ...axisCommon(months),
+            legend: { textStyle: { color: "#A7C4B5", fontSize: 11 }, top: 8 },
+            yAxis: { ...axisCommon(months).yAxis, name: "kWh", nameTextStyle: { color: "#6F8578", fontSize: 10 } },
+            series: [
+              { name: "Baseline (kWh)", type: "bar", data: baseline, itemStyle: { color: "rgba(229,115,115,0.75)" } },
+              { name: "OCTR (actual)", type: "line", data: octrActual, smooth: 0.2, lineStyle: { width: 2, color: "#52b788" } },
+              { name: "OCTR (projected)", type: "line", data: octrProjected, smooth: 0.2, lineStyle: { width: 2, color: "#52b788", type: "dashed" } },
+            ],
+          };
+        }
+
+        function optionGasVolume(rows) {
+          const months = rows.map((r) => r.month);
+          const baseline = rows.map((r) => r.baseline_m3);
+          const octrActual = rows.map((r) => (r.status === "ACTUAL" ? r.octr_m3 : null));
+          const octrProjected = rows.map((r) => (r.status !== "ACTUAL" ? r.octr_m3 : null));
+          return {
+            backgroundColor: "transparent",
+            ...axisCommon(months),
+            legend: { textStyle: { color: "#A7C4B5", fontSize: 11 }, top: 8 },
+            yAxis: { ...axisCommon(months).yAxis, name: "m³", nameTextStyle: { color: "#6F8578", fontSize: 10 } },
+            series: [
+              { name: "Baseline (m³)", type: "bar", data: baseline, itemStyle: { color: "rgba(246,195,68,0.55)" } },
+              { name: "OCTR (actual)", type: "line", data: octrActual, smooth: 0.2, lineStyle: { width: 2, color: "#f6c344" } },
+              { name: "OCTR (projected)", type: "line", data: octrProjected, smooth: 0.2, lineStyle: { width: 2, color: "#f6c344", type: "dashed" } },
+            ],
+          };
+        }
+
+        function optionBillStack(rows, accent) {
+          const months = rows.map((r) => r.month);
+          const baselineM = rows.map((r) => (r.actual_cost_krw + r.cost_saved_krw) / 1e6);
+          const avoidedM = rows.map((r) => r.cost_saved_krw / 1e6);
+          const avoidedColor = accent === "gas" ? "rgba(246,195,68,0.85)" : "rgba(82,183,136,0.85)";
+          return {
+            backgroundColor: "transparent",
+            ...axisCommon(months),
+            legend: { textStyle: { color: "#A7C4B5", fontSize: 11 }, top: 8 },
+            yAxis: { ...axisCommon(months).yAxis, name: "M₩", nameTextStyle: { color: "#6F8578", fontSize: 10 } },
+            series: [
+              { name: "Baseline bill (M₩)", type: "bar", stack: "bill", data: baselineM, itemStyle: { color: "rgba(255,255,255,0.18)" } },
+              { name: "Cost avoided (M₩)", type: "bar", stack: "bill", data: avoidedM, itemStyle: { color: avoidedColor } },
+            ],
+          };
+        }
+
+        function optionCumulative(fullRows) {
+          const months = fullRows.map((r) => r.month);
+          let cum = 0;
+          const cumM = fullRows.map((r) => {
+            cum += (r.total_saved_krw || 0);
+            return cum / 1e6;
+          });
+          return {
+            backgroundColor: "transparent",
+            ...axisCommon(months),
+            yAxis: { ...axisCommon(months).yAxis, name: "M₩", nameTextStyle: { color: "#6F8578", fontSize: 10 } },
+            series: [
+              {
+                name: "Cumulative avoided (M₩)",
+                type: "line",
+                data: cumM,
+                smooth: 0.2,
+                symbol: "circle",
+                symbolSize: 4,
+                lineStyle: { width: 2, color: "rgba(108,178,255,0.9)" },
+                areaStyle: { color: "rgba(108,178,255,0.08)" },
+              },
+            ],
+          };
+        }
+
+        const chartIds = ["c_cost", "c_rate", "c_cum", "e_cons", "e_stack", "e_rate", "g_vol", "g_stack", "g_rate"];
+        const charts = {};
+
+        function initCharts() {
+          for (const id of chartIds) {
+            const el = document.getElementById(id);
+            charts[id] = echarts.init(el, null, { renderer: "canvas" });
+          }
+          window.addEventListener("resize", () => {
+            for (const id of chartIds) charts[id].resize();
+          });
+        }
+
+        let view = "combined";
+        let range = "last3m";
+
+        function render() {
+          const combined = applyRange(DATA.combined, range);
+          const elec = applyRange(DATA.electricity, range);
+          const gas = applyRange(DATA.gas, range);
+
+          renderKpis(kpiCards(view, combined, elec, gas));
+
+          document.getElementById("view-combined").classList.toggle("hidden", view !== "combined");
+          document.getElementById("view-electricity").classList.toggle("hidden", view !== "electricity");
+          document.getElementById("view-gas").classList.toggle("hidden", view !== "gas");
+
+          charts.c_cost.setOption(optionCombinedCost(combined), true);
+          charts.c_rate.setOption(optionRate(combined, "primary"), true);
+          charts.c_cum.setOption(optionCumulative(DATA.combined), true);
+
+          charts.e_cons.setOption(optionElecConsumption(elec), true);
+          charts.e_stack.setOption(optionBillStack(elec, "elec"), true);
+          charts.e_rate.setOption(optionRate(elec, "elec"), true);
+
+          charts.g_vol.setOption(optionGasVolume(gas), true);
+          charts.g_stack.setOption(optionBillStack(gas, "gas"), true);
+          charts.g_rate.setOption(optionRate(gas, "gas"), true);
+        }
+
+        function setTabsState() {
+          const buttons = document.querySelectorAll("#tabs button[data-view]");
+          buttons.forEach((b) => {
+            const isActive = b.getAttribute("data-view") === view;
+            b.classList.toggle("active", isActive);
+            b.setAttribute("aria-selected", isActive ? "true" : "false");
+          });
+        }
+
+        function setRangesState() {
+          const buttons = document.querySelectorAll("#ranges button[data-range]");
+          buttons.forEach((b) => {
+            const isActive = b.getAttribute("data-range") === range;
+            b.classList.toggle("active", isActive);
+          });
+        }
+
+        function bindUI() {
+          document.getElementById("tabs").addEventListener("click", (e) => {
+            const b = e.target.closest("button[data-view]");
+            if (!b) return;
+            view = b.getAttribute("data-view");
+            setTabsState();
+            render();
+          });
+          document.getElementById("ranges").addEventListener("click", (e) => {
+            const b = e.target.closest("button[data-range]");
+            if (!b) return;
+            range = b.getAttribute("data-range");
+            setRangesState();
+            render();
+          });
+        }
+
+        initCharts();
+        bindUI();
+        setTabsState();
+        setRangesState();
+        render();
+      })();
+    </script>
+  </body>
+</html>
+
