@@ -76,8 +76,8 @@ function CustomTooltip({ active, payload, label }: any) {
 
 export function EnergyComparisonChart() {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-md p-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-[var(--text)]">Expected vs Actual Energy</h3>
           <p className="text-[11px] text-[var(--text-faint)] mt-0.5">
@@ -98,7 +98,7 @@ export function EnergyComparisonChart() {
 
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={chartData} barCategoryGap="20%" barGap={2}>
-          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.04)" />
+          <CartesianGrid vertical={false} stroke="rgba(255,255,255,0.05)" />
           <XAxis
             dataKey="month"
             axisLine={{ stroke: "rgba(255,255,255,0.08)" }}

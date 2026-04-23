@@ -19,8 +19,8 @@ const savingsData = [
 
 export function CumulativeSavingsChart() {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-md p-5">
-      <div className="flex items-center justify-between mb-3">
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-[var(--text)]">Cumulative Savings</h3>
           <p className="text-[11px] text-[var(--text-faint)]">Energy + Opex, $M</p>
@@ -35,7 +35,7 @@ export function CumulativeSavingsChart() {
                 <stop offset="100%" stopColor="#52b788" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid stroke="rgba(255,255,255,0.04)" vertical={false} />
+            <CartesianGrid stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis dataKey="month" tick={{ fill: "#a7c4b5", fontSize: 11 }} tickLine={false} axisLine={false} />
             <YAxis
               tick={{ fill: "#a7c4b5", fontSize: 11 }}
@@ -47,7 +47,7 @@ export function CumulativeSavingsChart() {
               contentStyle={{
                 background: "rgba(17,27,22,0.95)",
                 border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 6,
+                borderRadius: 10,
                 fontSize: 12,
               }}
               formatter={(value: number) => [`$${value.toFixed(1)}M`, "Cumulative"]}
@@ -59,7 +59,7 @@ export function CumulativeSavingsChart() {
               strokeWidth={2}
               fill="url(#savings-fill)"
               isAnimationActive={false}
-              dot={{ r: 2, fill: "#52b788" }}
+              dot={{ r: 3, fill: "#52b788", strokeWidth: 0 }}
               style={{ filter: "drop-shadow(0 0 6px rgba(82,183,136,0.5))" }}
             />
           </AreaChart>

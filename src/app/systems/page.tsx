@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function SystemsPage() {
-  redirect("/systems/water");
+  redirect("/systems/equipment");
 }

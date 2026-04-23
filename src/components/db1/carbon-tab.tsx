@@ -8,7 +8,7 @@ export function CarbonESGTab() {
   ];
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-md p-5 space-y-3">
+    <div className="space-y-3">
       <div>
         <h2 className="text-lg font-semibold text-[var(--text)]">Carbon & ESG</h2>
         <p className="text-[12px] text-[var(--text-faint)]">

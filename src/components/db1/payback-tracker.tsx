@@ -4,7 +4,7 @@ export function PaybackTracker() {
   const progress = 68;
 
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-md p-5 h-full flex flex-col gap-3">
+    <div className="h-full flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-[var(--text)]">Project Payback</h3>

@@ -1,3 +1,4 @@
+import { DashboardChrome } from "@/components/layout/DashboardChrome";
 import { Header } from "@/components/layout/Header";
 import { SystemsTabs } from "@/components/layout/SystemsTabs";
 
@@ -7,10 +8,16 @@ export default function SystemsLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col h-full">
-      <Header />
-      <SystemsTabs />
-      <div className="flex-1 overflow-auto p-6">{children}</div>
-    </div>
+    <DashboardChrome maxWidth="1700px">
+      <div className="min-h-screen flex flex-col">
+        <div className="w-full max-w-[1400px] mx-auto shrink-0">
+          <Header />
+          <SystemsTabs />
+        </div>
+        <div className="w-full max-w-[1400px] mx-auto flex-1 pb-8 pt-2">
+          {children}
+        </div>
+      </div>
+    </DashboardChrome>
   );
 }

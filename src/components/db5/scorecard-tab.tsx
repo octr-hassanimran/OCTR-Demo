@@ -55,8 +55,9 @@ function Odometer({ value, suffix = "" }: { value: number; suffix?: string }) {
   );
 }
 
-function StrategyCardGrid() {
-  const [expanded, setExpanded] = useState<string | null>(null);
+type Strategy = (typeof strategyCards)[number];
+
+function StrategyCardGrid({ onSelect }: { onSelect: (s: Strategy) => void }) {
   const statusClass = (status: (typeof strategyCards)[number]["status"]) => {
     if (status === "active") {
       return {
@@ -114,7 +115,7 @@ function StrategyCardGrid() {
             <button
               type="button"
               key={s.id}
-              onClick={() => setExpanded(expanded === s.id ? null : s.id)}
+              onClick={() => onSelect(s)}
               className={cn(
                 "text-left rounded-md border border-white/[0.06] border-t-[3px] p-3 bg-[var(--surface)]",
                 "hover:shadow-[0_0_0_1px_rgba(82,183,136,0.35),0_8px_28px_rgba(64,145,108,0.18)]",
@@ -164,13 +165,6 @@ function StrategyCardGrid() {
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
-              {expanded === s.id && (
-                <div className="mt-2 pt-2 border-t border-white/[0.06] text-[11px] text-[var(--text-muted)]">
-                  {s.status === "active"
-                    ? "Tracking to target. Continue M&V verification and monitor drift."
-                    : "Below potential. Prioritize controls review and sequence tuning."}
-                </div>
-              )}
             </button>
           );
         })}
@@ -459,13 +453,107 @@ function SavingsAttribution() {
 }
 
 export function ScorecardTab() {
+  const [selected, setSelected] = useState<Strategy | null>(null);
   return (
-    <div className="space-y-8">
-      <StrategyCardGrid />
-      <DeepDives />
-      <SavingsAttribution />
-      <div className="text-[10px] text-[var(--text-faint)]">
-        Deep-dives shown for opportunities {topDeepDives.join(", ")}.
+    <>
+      <div className="space-y-8">
+        <StrategyCardGrid onSelect={setSelected} />
+        <DeepDives />
+        <SavingsAttribution />
+        <div className="text-[10px] text-[var(--text-faint)]">
+          Deep-dives shown for opportunities {topDeepDives.join(", ")}.
+        </div>
+      </div>
+      <StrategyDetailPanel strategy={selected} onClose={() => setSelected(null)} />
+    </>
+  );
+}
+
+function StrategyDetailPanel({
+  strategy,
+  onClose,
+}: {
+  strategy: Strategy | null;
+  onClose: () => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "fixed inset-y-0 right-0 w-full sm:w-[420px] max-w-full transform transition-transform duration-200 z-40",
+        strategy ? "translate-x-0" : "translate-x-full"
+      )}
+    >
+      <div className="h-full bg-[rgba(24,28,35,0.98)] border-l border-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.45)] p-5 flex flex-col gap-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <div className="text-[11px] text-[var(--text-faint)] uppercase tracking-widest">
+              {strategy ? `Opp. ${strategy.oehOpp}` : "Strategy"}
+            </div>
+            <div className="text-[16px] font-semibold text-[var(--text)] leading-snug">
+              {strategy?.name ?? "Select a strategy"}
+            </div>
+            {strategy && (
+              <div className="text-[12px] text-[var(--text-muted)] mt-1">
+                Status: {strategy.status === "active" ? "Active" : strategy.status === "underperforming" ? "Underperforming" : "Inactive"}
+              </div>
+            )}
+          </div>
+          <button
+            onClick={onClose}
+            className="text-[12px] text-[var(--text-muted)] hover:text-[var(--text)] border border-white/[0.12] rounded-md px-2 py-1"
+          >
+            Close
+          </button>
+        </div>
+
+        {strategy ? (
+          <div className="space-y-3 text-[13px] text-[var(--text)]">
+            <div className="rounded-md border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3">
+              <div className="text-[11px] text-[var(--text-faint)] uppercase tracking-wide mb-1">Impact</div>
+              <div className="text-[14px] font-semibold">
+                {strategy.savingsKwh.toLocaleString()} kWh · ₩{(strategy.savingsCurrency / 1_000_000).toFixed(2)}M
+              </div>
+              <div className="text-[11px] text-[var(--primary-bright)]">
+                {strategy.measuredVsExpectedPct >= 0 ? "↑" : "↓"} {Math.abs(strategy.measuredVsExpectedPct).toFixed(1)}% vs expected
+              </div>
+            </div>
+
+            <div className="rounded-md border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3 space-y-2">
+              <div className="text-[11px] text-[var(--text-faint)] uppercase tracking-wide">Notes</div>
+              <p className="text-[12px] text-[var(--text-muted)]">
+                {strategy.status === "active"
+                  ? "Tracking to target. Continue M&V verification and monitor drift."
+                  : "Below potential. Prioritize controls review and sequence tuning."}
+              </p>
+              <p className="text-[12px] text-[var(--text-muted)]">
+                Weekly sparkline shows recent measured performance vs target. Use Analytics tab for deeper attribution.
+              </p>
+            </div>
+
+            <div className="rounded-md border border-white/[0.08] bg-[rgba(255,255,255,0.02)] p-3">
+              <div className="text-[11px] text-[var(--text-faint)] uppercase tracking-wide mb-2">
+                Recent trend
+              </div>
+              <div className="h-28">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={strategy.weeklySparkline.map((v, i) => ({ i, v }))}>
+                    <Area
+                      type="monotone"
+                      dataKey="v"
+                      stroke="#52b788"
+                      fill="rgba(82,183,136,0.2)"
+                      strokeWidth={1.6}
+                      dot={false}
+                      isAnimationActive={false}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="text-[12px] text-[var(--text-muted)]">Select a strategy card to view details.</div>
+        )}
       </div>
     </div>
   );

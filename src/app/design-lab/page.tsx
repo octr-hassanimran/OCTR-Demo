@@ -618,25 +618,9 @@ export default function DesignLabPage() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  // #region agent log
-  fetch("http://127.0.0.1:7249/ingest/06785e49-5708-46a4-9960-0555e92ea435", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "354bb6" },
-    body: JSON.stringify({
-      sessionId: "354bb6",
-      runId: "build-error-investigation",
-      hypothesisId: "H1",
-      location: "src/app/design-lab/page.tsx:DesignLabPage",
-      message: "DesignLabPage render reached",
-      data: { paletteVariantsLength: paletteVariants.length, activeTab, towerMode, activeFloor },
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {});
-  // #endregion
-
   return (
     <div
-      className="p-6 md:p-8 space-y-6 max-w-[1600px] mx-auto"
+      className="space-y-6 w-full"
       style={
         {
           "--bg": "#0A0C0D",

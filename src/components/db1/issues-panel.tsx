@@ -25,8 +25,8 @@ const issues = [
 
 export function IssuesPanel() {
   return (
-    <div className="bg-[var(--surface)] border border-[var(--border)] rounded-md p-5 h-full">
-      <div className="flex items-center justify-between mb-3">
+    <div className="space-y-3 h-full">
+      <div className="flex items-center justify-between">
         <div>
           <h3 className="text-sm font-semibold text-[var(--text)]">Active Issues</h3>
           <p className="text-[11px] text-[var(--text-faint)]">Prioritized by savings impact</p>
